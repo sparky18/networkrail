@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 class networkMapper(object):
 	def __init__(self):
 		self._edges = []
-		# self._G = nx.DiGraph()
+		self._berths = {}
 		self._client = None
 		self._graphFlag = False
 
@@ -58,7 +58,7 @@ class networkMapper(object):
 			iFrom = int(mFrom.groups()[0])
 			iTo   = int(mTo.groups()[0])
 
-			pair = (iFrom, iTo)
+			pair = (_from, _to)
 			if iFrom < 150:
 				if pair not in self._edges:
 					self._edges.append(pair)
@@ -77,25 +77,40 @@ class networkMapper(object):
 				G.add_edge(edge[0], edge[1])
 
 			pos = nx.graphviz_layout(G, prog='dot')
-			nx.draw_networkx_nodes(G,pos)
+
+			occupied = filter(lambda x: x in self._berths and self._berths[x] is not None, G.nodes())
+			vacant   = filter(lambda x: x not in occupied, G.nodes())
+
+			print occupied
+			print vacant
+
+			nx.draw_networkx_nodes(G,pos, nodelist=occupied, node_color='r', node_shape='s', node_size=900)
+			nx.draw_networkx_nodes(G,pos, nodelist=vacant, node_color='g', node_shape='s', node_size=900)
 			nx.draw_networkx_edges(G,pos)
 			nx.draw_networkx_labels(G,pos)
 
 			fig = matplotlib.pyplot.gcf()
-			fig.set_size_inches(10.0, 10.0)
+			fig.set_size_inches(14.0, 14.0)
 			plt.axis('off')
-			plt.savefig("simple_path.png") # save as png
+			# plt.savefig("simple_path.png") # save as png
+			plt.savefig("/var/www/out.png") # save as png
 			print 'Graph Updated'
-			self._graphFlag = False
+			# self._graphFlag = False
 
 	def processMessage(self, msg_type, msg):
 		headcode = msg['descr']
 		if True or headcode in sys.argv:
 			area = msg['area_id']
-			_from = msg['from']	
-			_to = msg['to']	
-			print '%s %s: %s%s --> %s%s' % (msg_type, headcode, area, _from, area, _to)
-			self.updateGraph(area, _from, _to)
+			if area == 'LB':
+				_from = msg['from']	
+				_to = msg['to']	
+				print '%s %s: %s%s --> %s%s' % (msg_type, headcode, area, _from, area, _to)
+
+				if (_from in self._berths) and (self._berths[_from] == headcode):
+					self._berths[_from] = None
+
+				self._berths[_to] = headcode
+				self.updateGraph(area, _from, _to)
 
 	def go(self):
 		while True:
@@ -113,7 +128,7 @@ class networkMapper(object):
 								print 'AAA'
 								raise
 							except Exception, e:
-								print e
+								print traceback.format_exc()
 								pprint.pprint(msg)
 								continue
 				self.outputGraph()
