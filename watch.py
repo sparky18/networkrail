@@ -6,6 +6,7 @@ import pickle
 import pprint
 import re
 import sys
+import time
 import traceback
 
 from stompest.config import StompConfig
@@ -22,6 +23,7 @@ class networkMapper(object):
 		self._berths = {}
 		self._client = None
 		self._graphFlag = False
+		self._graphTime = 0
 
 	def configureClient(self, _login, _passcode):
 		CONFIG = StompConfig('tcp://datafeeds.networkrail.co.uk:61618', login=_login, passcode=_passcode)
@@ -59,7 +61,7 @@ class networkMapper(object):
 			iTo   = int(mTo.groups()[0])
 
 			pair = (_from, _to)
-			if iFrom < 150:
+			if iFrom <= 220:
 				if pair not in self._edges:
 					self._edges.append(pair)
 					self._graphFlag = True
@@ -81,20 +83,19 @@ class networkMapper(object):
 			occupied = filter(lambda x: x in self._berths and self._berths[x] is not None, G.nodes())
 			vacant   = filter(lambda x: x not in occupied, G.nodes())
 
-			print occupied
-			print vacant
-
 			nx.draw_networkx_nodes(G,pos, nodelist=occupied, node_color='r', node_shape='s', node_size=900)
 			nx.draw_networkx_nodes(G,pos, nodelist=vacant, node_color='g', node_shape='s', node_size=900)
 			nx.draw_networkx_edges(G,pos)
 			nx.draw_networkx_labels(G,pos)
 
 			fig = matplotlib.pyplot.gcf()
-			fig.set_size_inches(14.0, 14.0)
+			fig.set_size_inches(16.0, 30.0)
 			plt.axis('off')
 			# plt.savefig("simple_path.png") # save as png
-			plt.savefig("/var/www/out.png") # save as png
-			print 'Graph Updated'
+			if (time.time() - self._graphTime) > 10:
+				plt.savefig("/var/www/out.png") # save as png
+				self._graphTime = time.time()
+				print 'Graph Updated'
 			# self._graphFlag = False
 
 	def processMessage(self, msg_type, msg):
