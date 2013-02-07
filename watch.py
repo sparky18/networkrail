@@ -17,6 +17,8 @@ matplotlib.use('Agg')
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from  networkx.algorithms.traversal.depth_first_search import dfs_tree
+
 class networkMapper(object):
 	def __init__(self):
 		self._edges = []
@@ -85,6 +87,15 @@ class networkMapper(object):
 				elif _filter(edge[0]) or _filter(edge[1]):
 					G.add_edge(edge[0], edge[1])
 
+			try:
+				G1 = dfs_tree(G, u'0015')
+				G2 = dfs_tree(G, u'0013')
+				G3 = nx.compose(G1,G2)
+				G4 = dfs_tree(G, u'0017')
+				G = nx.compose(G3, G4)
+			except:
+				pass
+
 			pos = nx.graphviz_layout(G, prog='dot')
 
 			occupied = filter(lambda x: x in self._berths and self._berths[x] is not None, G.nodes())
@@ -96,11 +107,11 @@ class networkMapper(object):
 			nx.draw_networkx_labels(G,pos)
 
 			fig = matplotlib.pyplot.gcf()
-			fig.set_size_inches(16.0, 30.0)
+			fig.set_size_inches(16.0, 25.0)
 			plt.axis('off')
 			# plt.savefig("simple_path.png") # save as png
 			if (time.time() - self._graphTime[filename]) > 10:
-				plt.savefig(filename) # save as png
+				plt.savefig(filename, bbox_inches='tight') # save as png
 				self._graphTime[filename] = time.time()
 				print 'Graph Updated'
 			# self._graphFlag = False
@@ -125,7 +136,6 @@ class networkMapper(object):
 			try:
 				frame = self._client.receiveFrame()
 				data = json.loads(frame.body)
-				# pprint.pprint(data)
 				for msg in data:
 					for k in msg:
 						# if k.startswith(('CA', 'CB', 'CC')):
