@@ -23,7 +23,7 @@ class networkMapper(object):
 		self._berths = {}
 		self._client = None
 		self._graphFlag = False
-		self._graphTime = 0
+		self._graphTime = {}
 
 	def configureClient(self, _login, _passcode):
 		CONFIG = StompConfig('tcp://datafeeds.networkrail.co.uk:61618', login=_login, passcode=_passcode)
@@ -37,7 +37,6 @@ class networkMapper(object):
 	def loadEdges(self):
 		try:
 			self._edges = pickle.load(open('edges', 'r'))
-			pprint.pprint(self._edges)
 			self._graphFlag = True
 		except:
 			print >> sys.stderr, 'Could not load edges'
@@ -71,12 +70,26 @@ class networkMapper(object):
 			print area, _from, _to
 			print 'erk'
 
-	def outputGraph(self):
+	def oddNumber(self, s):
+		m = re.search('[13579]$', s)
+		return m is not None
+
+	def evenNumber(self, s):
+		m = re.search('[13579]$', s)
+		return m is None
+
+	def outputGraph(self, filename, _filter=None):
+		if filename not in self._graphTime:
+			self._graphTime[filename] = 0
+
 		if self._graphFlag:
 			G = nx.DiGraph()
 			plt.clf()
 			for edge in self._edges:
-				G.add_edge(edge[0], edge[1])
+				if _filter is None:
+					G.add_edge(edge[0], edge[1])
+				elif _filter(edge[0]) or _filter(edge[1]):
+					G.add_edge(edge[0], edge[1])
 
 			pos = nx.graphviz_layout(G, prog='dot')
 
@@ -92,9 +105,9 @@ class networkMapper(object):
 			fig.set_size_inches(16.0, 30.0)
 			plt.axis('off')
 			# plt.savefig("simple_path.png") # save as png
-			if (time.time() - self._graphTime) > 10:
-				plt.savefig("/var/www/out.png") # save as png
-				self._graphTime = time.time()
+			if (time.time() - self._graphTime[filename]) > 10:
+				plt.savefig(filename) # save as png
+				self._graphTime[filename] = time.time()
 				print 'Graph Updated'
 			# self._graphFlag = False
 
@@ -132,7 +145,8 @@ class networkMapper(object):
 								print traceback.format_exc()
 								pprint.pprint(msg)
 								continue
-				self.outputGraph()
+				self.outputGraph('/var/www/down.png', self.oddNumber)
+				self.outputGraph('/var/www/up.png', self.evenNumber)
 			except KeyboardInterrupt:
 				print 'BBB'
 				break
