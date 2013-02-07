@@ -43,32 +43,26 @@ class networkMapper(object):
 			self._edges = []
 
 	def updateGraph(self, area, _from, _to):
-		try:
-			if area != 'LB':
-				return
+		if area != 'LB':
+			return
 
-			mFrom = re.match('(\d+)', _from)
-			if mFrom is None:
-				print _from
-				return
-			mTo = re.match('(\d+)', _to)
-			if mTo is None:
-				print _to
-				return
-			
-			iFrom = int(mFrom.groups()[0])
-			iTo   = int(mTo.groups()[0])
+		mFrom = re.match('(\d+)', _from)
+		if mFrom is None:
+			print _from
+			return
+		mTo = re.match('(\d+)', _to)
+		if mTo is None:
+			print _to
+			return
+		
+		iFrom = int(mFrom.groups()[0])
+		iTo   = int(mTo.groups()[0])
 
-			pair = (_from, _to)
-			if iFrom <= 220:
-				if pair not in self._edges:
-					self._edges.append(pair)
-					self._graphFlag = True
-
-		except Exception, e:
-			print e
-			print area, _from, _to
-			print 'erk'
+		pair = (_from, _to)
+		if iFrom <= 220:
+			if pair not in self._edges:
+				self._edges.append(pair)
+				self._graphFlag = True
 
 	def oddNumber(self, s):
 		m = re.search('[13579]$', s)
@@ -138,22 +132,16 @@ class networkMapper(object):
 						if k.startswith('CA'):
 							try:
 								self.processMessage(k, msg[k])
-							except KeyboardInterrupt:
-								print 'AAA'
-								raise
 							except Exception, e:
-								print traceback.format_exc()
 								pprint.pprint(msg)
-								continue
+								raise
 				self.outputGraph('/var/www/down.png', self.oddNumber)
 				self.outputGraph('/var/www/up.png', self.evenNumber)
 			except KeyboardInterrupt:
-				print 'BBB'
 				break
 			except Exception, e:
-				print traceback.format_exc()
 				pprint.pprint(data)
-				continue
+				raise
 
 	def disconnect(self):
 		self._client.disconnect()
@@ -165,7 +153,7 @@ def main():
 
 
 	logging.basicConfig()
-	logging.getLogger().setLevel(logging.ERROR)
+	logging.getLogger().setLevel(logging.INFO)
 
 
 	passcode = open('passcode', 'r').read().strip()
@@ -173,10 +161,12 @@ def main():
 	m = networkMapper()
 	m.configureClient('networkrail-data@psi.epsilon.org.uk', passcode)
 	m.loadEdges()
-	m.go()
-
-
-	m.disconnect()
+	try:
+		m.go()
+	finally:
+		print >> sys.stderr, 'Disconnecting...'
+		m.disconnect()
+	
 	m.dumpEdges()
 
 if __name__ == '__main__':
