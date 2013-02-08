@@ -2,10 +2,12 @@
 
 import json
 import logging
+import os
 import pickle
 import pprint
 import re
 import sys
+import tempfile
 import time
 import traceback
 
@@ -78,7 +80,8 @@ class networkMapper(object):
 		if filename not in self._graphTime:
 			self._graphTime[filename] = 0
 
-		if self._graphFlag:
+		if (time.time() - self._graphTime[filename]) > 10:
+			print 'pre-Update Graph: %s' % filename
 			G = nx.DiGraph()
 			plt.clf()
 			for edge in self._edges:
@@ -109,11 +112,15 @@ class networkMapper(object):
 			fig = matplotlib.pyplot.gcf()
 			fig.set_size_inches(16.0, 25.0)
 			plt.axis('off')
-			# plt.savefig("simple_path.png") # save as png
-			if (time.time() - self._graphTime[filename]) > 10:
-				plt.savefig(filename, bbox_inches='tight') # save as png
-				self._graphTime[filename] = time.time()
-				print 'Graph Updated'
+			f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/')
+			plt.savefig(f, bbox_inches='tight', format='png') # save as png
+			f.close()
+			os.chmod(f.name, 292) # 444
+			os.unlink(filename)
+			os.link(f.name, filename)
+			os.unlink(f.name)
+			self._graphTime[filename] = time.time()
+			print 'Graph Updated: %s' % filename
 			# self._graphFlag = False
 
 	def processMessage(self, msg_type, msg):
