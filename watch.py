@@ -101,11 +101,15 @@ class networkMapper(object):
 
 			pos = nx.graphviz_layout(G, prog='dot')
 
-			occupied = filter(lambda x: x in self._berths and self._berths[x] is not None, G.nodes())
-			vacant   = filter(lambda x: x not in occupied, G.nodes())
 
-			nx.draw_networkx_nodes(G,pos, nodelist=occupied, node_color='r', node_shape='s', node_size=900)
-			nx.draw_networkx_nodes(G,pos, nodelist=vacant, node_color='g', node_shape='s', node_size=900)
+			colours = []
+			for n in G.nodes():
+				if n in self._berths and self._berths[n] is not None:
+					colours.append('r')
+				else:
+					colours.append('g')
+
+			nx.draw_networkx_nodes(G,pos, node_color=colours, node_shape='s', node_size=900)
 			nx.draw_networkx_edges(G,pos)
 			nx.draw_networkx_labels(G,pos)
 
@@ -113,7 +117,7 @@ class networkMapper(object):
 			fig.set_size_inches(16.0, 25.0)
 			plt.axis('off')
 			f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/')
-			plt.savefig(f, bbox_inches='tight', format='png') # save as png
+			plt.savefig(f, bbox_inches='tight', format='svg') # save as png
 			f.close()
 			os.chmod(f.name, 292) # 444
 			os.unlink(filename)
@@ -152,8 +156,8 @@ class networkMapper(object):
 							except Exception, e:
 								pprint.pprint(msg)
 								raise
-				self.outputGraph('/var/www/down.png', self.oddNumber)
-				self.outputGraph('/var/www/up.png', self.evenNumber)
+				self.outputGraph('/var/www/down.svg', self.oddNumber)
+				self.outputGraph('/var/www/up.svg', self.evenNumber)
 			except KeyboardInterrupt:
 				break
 			except Exception, e:
