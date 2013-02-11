@@ -76,6 +76,16 @@ class networkMapper(object):
 		m = re.search('[13579]$', s)
 		return m is None
 
+	def outputFile(self, plt, filename):
+		f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/')
+		plt.savefig(f, bbox_inches='tight', format='png') # save as png
+		f.close()
+		os.chmod(f.name, 292) # 444
+		if os.path.exists(filename):
+			os.unlink(filename)
+		os.link(f.name, filename)
+		os.unlink(f.name)
+
 	def outputGraph(self, filename, _filter=None):
 		if filename not in self._graphTime:
 			self._graphTime[filename] = 0
@@ -116,13 +126,9 @@ class networkMapper(object):
 			fig = matplotlib.pyplot.gcf()
 			fig.set_size_inches(16.0, 25.0)
 			plt.axis('off')
-			f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/')
-			plt.savefig(f, bbox_inches='tight', format='svg') # save as png
-			f.close()
-			os.chmod(f.name, 292) # 444
-			os.unlink(filename)
-			os.link(f.name, filename)
-			os.unlink(f.name)
+				
+			self.outputFile(plt, filename)
+
 			self._graphTime[filename] = time.time()
 			print 'Graph Updated: %s' % filename
 			# self._graphFlag = False
@@ -156,8 +162,8 @@ class networkMapper(object):
 							except Exception, e:
 								pprint.pprint(msg)
 								raise
-				self.outputGraph('/var/www/down.svg', self.oddNumber)
-				self.outputGraph('/var/www/up.svg', self.evenNumber)
+				self.outputGraph('/var/www/down.png', self.oddNumber)
+				self.outputGraph('/var/www/up.png', self.evenNumber)
 			except KeyboardInterrupt:
 				break
 			except Exception, e:
