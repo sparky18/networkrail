@@ -1,8 +1,38 @@
-<HTML>
-<HEAD>
-<meta http-equiv="refresh" content="10">
-</HEAD>
-<BODY>
-<IMG SRC="down.svg">
-</BODY>
-</HTML>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+<head>
+<title></title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	function showImage() {
+		d = new Date();
+
+		var img = new Image();
+		$(img)
+			.load(function() {
+				$('#photo').empty();
+				$('#photo').append(this);
+			})
+			.attr('src', 'down.png?' + d.getTime())
+	};
+
+	setInterval(function() {
+		showImage();
+	}, 20000);
+
+})
+
+</script>
+
+</head>
+
+<body>
+
+<div id="photo" style="float:left;"></div>
+</body>
+</html>
+
