@@ -184,9 +184,10 @@ def main():
 
 
 	passcode = open('passcode', 'r').read().strip()
+	userid = open('userid', 'r').read().strip()
 
 	m = networkMapper()
-	m.configureClient('networkrail-data@psi.epsilon.org.uk', passcode)
+	m.configureClient(userid, passcode)
 	m.loadEdges()
 	try:
 		m.go()
