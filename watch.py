@@ -91,7 +91,7 @@ class networkMapper(object):
 			self._graphTime[filename] = 0
 
 		if (time.time() - self._graphTime[filename]) > 10:
-			print 'pre-Update Graph: %s' % filename
+			# print 'pre-Update Graph: %s' % filename
 			G = nx.DiGraph()
 			plt.clf()
 			for edge in self._edges:
@@ -130,7 +130,7 @@ class networkMapper(object):
 			self.outputFile(plt, filename)
 
 			self._graphTime[filename] = time.time()
-			print 'Graph Updated: %s' % filename
+			# print 'Graph Updated: %s' % filename
 			# self._graphFlag = False
 
 	def processMessage(self, msg_type, msg):
