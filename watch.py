@@ -109,15 +109,24 @@ class networkMapper(object):
 			except:
 				pass
 
-			pos = nx.graphviz_layout(G, prog='dot')
-
+			relabel = {}
+			newToOld = {}
+			for n in G.nodes():
+				if n in self._berths and self._berths[n] is not None:
+					relabel[n] = self._berths[n]
+					newToOld[self._berths[n]] = n
+			nx.relabel_nodes(G, relabel, False)
 
 			colours = []
 			for n in G.nodes():
+				if n in newToOld:
+					n = newToOld[n]
 				if n in self._berths and self._berths[n] is not None:
 					colours.append('r')
 				else:
 					colours.append('g')
+
+			pos = nx.graphviz_layout(G, prog='dot')
 
 			nx.draw_networkx_nodes(G,pos, node_color=colours, node_shape='s', node_size=900)
 			nx.draw_networkx_edges(G,pos)
