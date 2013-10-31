@@ -7,10 +7,10 @@ import time
 
 os.nice(5)
 
-cwd = os.getcwd()
+myPath = os.path.abspath(__file__)
 
 with daemon.DaemonContext():
-	os.chdir(cwd)
+	os.chdir(os.path.dirname(myPath))
 	for i in range(0, 10):
 		p = subprocess.Popen(['./watch.py'])
 		p.wait()
