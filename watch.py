@@ -77,7 +77,7 @@ class networkMapper(object):
 		return m is None
 
 	def outputFile(self, plt, filename):
-		f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/')
+		f = tempfile.NamedTemporaryFile(delete=False, prefix='/var/www/html/')
 		plt.savefig(f, bbox_inches='tight', format='png') # save as png
 		f.close()
 		os.chmod(f.name, 292) # 444
@@ -171,8 +171,8 @@ class networkMapper(object):
 							except Exception, e:
 								pprint.pprint(msg)
 								raise
-				self.outputGraph('/var/www/down.png', self.oddNumber)
-				self.outputGraph('/var/www/up.png', self.evenNumber)
+				self.outputGraph('/var/www/html/down.png', self.oddNumber)
+				self.outputGraph('/var/www/html/up.png', self.evenNumber)
 			except KeyboardInterrupt:
 				break
 			except Exception, e:
