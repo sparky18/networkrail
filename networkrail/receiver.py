@@ -14,6 +14,20 @@ import traceback
 from stompest.config import StompConfig
 from stompest.sync import Stomp
 
+HTML_HEAD = """
+<HTML>
+<HEAD>
+<meta http-equiv="refresh" content="10">
+</head> 
+<BODY>
+<TABLE>
+"""
+
+HTML_FOOT = """
+</TABLE>
+</HTML>
+"""
+
 class networkMapper(object):
 	def __init__(self):
 		self._edges = []
@@ -33,10 +47,10 @@ class networkMapper(object):
 		headcode = msg['descr']
 		if True or headcode in sys.argv:
 			area = msg['area_id']
-			if area == 'LB':
-				_from = msg['from']	
-				_to = msg['to']	
-				print '%s %s: %s%s --> %s%s' % (msg_type, headcode, area, _from, area, _to)
+			if area in ['LB', 'AD']:
+				_from = '%s%s' % (area, msg['from'])
+				_to = '%s%s' % (area, msg['to']	)
+				print '%s %s: %s --> %s' % (msg_type, headcode, _from, _to)
 
 				if (_from in self._berths) and (self._berths[_from] == headcode):
 					self._berths[_from] = None
@@ -73,6 +87,20 @@ class networkMapper(object):
 	def dumpEdges(self):
 		pickle.dump(self._edges, open('edges', 'w'))
 
+	def dumpTable(self):
+		f = open('/var/www/html/2S.html', 'w')
+		f.write(HTML_HEAD)
+		hc = {}
+		for b in self._berths:
+			if self._berths[b] is not None:
+				hc[self._berths[b]] = b
+
+		for h in sorted(hc.keys()):
+			f.write('<TR><TD>%s</TD><TD>%s</TD></TR>' % (h, hc[h]))
+			
+		f.write(HTML_FOOT)
+		f.close()
+
 def main():
 
 	logging.basicConfig()
@@ -87,6 +115,7 @@ def main():
 	try:
 		while True:
 			m.procFrame()
+			m.dumpTable()
 	finally:
 		print >> sys.stderr, 'Disconnecting...'
 		m.disconnect()
